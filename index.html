@@ -157,53 +157,44 @@ button:hover {
 <script type="module">
   import { supabase } from "./supabaseConfig.js";
 
-  // Form inputs
-  const fname = document.getElementById("fname");
-  const email = document.getElementById("email");
-  const password = document.getElementById("password");
-  const fathername = document.getElementById("fathername");
-  const adress = document.getElementById("adress");
-  const phoneNumber = document.getElementById("phoneNumber");
-  const btn = document.getElementById("submit");
-  const card = document.getElementById("userCard");
+  let fname = document.getElementById("fname");
+  let email = document.getElementById("email");
+  let password = document.getElementById("password");
+  let fathername = document.getElementById("fathername");
+  let adress = document.getElementById("adress");
+  let phoneNumber = document.getElementById("phoneNumber");
+  let btn = document.getElementById("submit");
+  let card = document.getElementById("userCard");
+  let searchInput = document.getElementById("searchRoll");
+  let searchBtn = document.getElementById("searchBtn");
+  let adminBtn = document.getElementById("adminBtn");
 
-  // Search inputs
-  const searchInput = document.getElementById("searchRoll");
-  const searchBtn = document.getElementById("searchBtn");
-
-  // Admin button
-  const adminBtn = document.getElementById('adminBtn');
-
-  // Submit sign in form
   btn.addEventListener("click", async () => {
-    const nameVal = fname.value.trim();
-    const emailVal = email.value.trim();
-    const passVal = password.value.trim();
-    const fatherVal = fathername.value.trim();
-    const addressVal = adress.value.trim();
-    const phoneVal = phoneNumber.value.trim();
+    let nameVal = fname.value.trim();
+    let emailVal = email.value.trim();
+    let passVal = password.value.trim();
+    let fatherVal = fathername.value.trim();
+    let addressVal = adress.value.trim();
+    let phoneVal = phoneNumber.value.trim();
 
     if (!nameVal || !emailVal || !passVal || !fatherVal || !addressVal || !phoneVal) {
-      Swal.fire("Error", "Please fill all fields", "error");
+      Swal.fire("Error", "Sab field bharna zaroori hai", "error");
       return;
     }
 
-    // Check if email exists
-    const { data: exists } = await supabase
+    let { data: exists } = await supabase
       .from("details")
       .select("*")
       .eq("email", emailVal);
 
     if (exists.length > 0) {
-      Swal.fire("Error", "Email already exists", "error");
+      Swal.fire("Error", "Ye email already use ho chuki hai", "error");
       return;
     }
 
-    // Generate 6-digit roll number
-    const rollNumber = Math.floor(100000 + Math.random() * 900000);
+    let rollNumber = Math.floor(100000 + Math.random() * 900000);
 
-    // Insert into supabase
-    const { error } = await supabase
+    let { error } = await supabase
       .from("details")
       .insert([{
         first_name: nameVal,
@@ -216,7 +207,7 @@ button:hover {
       }]);
 
     if (!error) {
-      Swal.fire("Saved!", "User added successfully.", "success");
+      Swal.fire("Ho gaya!", "Data save ho gaya.", "success");
 
       showCard({
         first_name: nameVal,
@@ -227,7 +218,6 @@ button:hover {
         phoneNumber: phoneVal
       });
 
-      // Clear form
       fname.value = "";
       email.value = "";
       password.value = "";
@@ -235,20 +225,19 @@ button:hover {
       adress.value = "";
       phoneNumber.value = "";
     } else {
-      Swal.fire("Error", "Failed to save user data", "error");
+      Swal.fire("Error", "Data save nahi hua", "error");
     }
   });
 
-  // Search roll number
   searchBtn.addEventListener("click", async () => {
-    const roll = searchInput.value.trim();
+    let roll = searchInput.value.trim();
 
     if (!roll) {
-      Swal.fire("Error", "Please enter a roll number", "error");
+      Swal.fire("Error", "Roll number daalo", "error");
       return;
     }
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("details")
       .select("*")
       .eq("rollnumber", roll);
@@ -258,8 +247,8 @@ button:hover {
     } else {
       card.innerHTML = `
         <div class="card">
-          <h3>❌ Roll Number Not Found</h3>
-          <p>No student exists with Roll # <strong>${roll}</strong></p>
+          <h3>❌ Nahi Mila</h3>
+          <p>Roll # <strong>${roll}</strong> ka data nahi mila</p>
         </div>
       `;
     }
@@ -267,7 +256,6 @@ button:hover {
     searchInput.value = "";
   });
 
-  // Show user card function
   function showCard(user) {
     card.innerHTML = `
       <div class="card">
@@ -281,19 +269,18 @@ button:hover {
     `;
   }
 
-  // Admin button click & login popup
   adminBtn.addEventListener('click', async () => {
-    const { value: formValues } = await Swal.fire({
+    let { value: formValues } = await Swal.fire({
       title: 'Admin Login',
       html:
         `<input type="email" id="swalEmail" class="swal2-input" placeholder="Email">` +
         `<input type="password" id="swalPass" class="swal2-input" placeholder="Password">`,
       focusConfirm: false,
       preConfirm: () => {
-        const email = Swal.getPopup().querySelector('#swalEmail').value;
-        const pass = Swal.getPopup().querySelector('#swalPass').value;
+        let email = Swal.getPopup().querySelector('#swalEmail').value;
+        let pass = Swal.getPopup().querySelector('#swalPass').value;
         if (!email || !pass) {
-          Swal.showValidationMessage(`Please enter email and password`);
+          Swal.showValidationMessage(`Email aur password daalo`);
           return;
         }
         return { email, pass };
@@ -301,13 +288,13 @@ button:hover {
     });
 
     if (formValues) {
-      const { email, pass } = formValues;
+      let { email, pass } = formValues;
       if (email === 'rehman@gmail.com' && pass === 'rehmanbhai12') {
-        Swal.fire('Welcome Admin!', '', 'success').then(() => {
-          window.location.href = 'admin.html';  // Redirect to admin page
+        Swal.fire('Admin Login Successful!', '', 'success').then(() => {
+          window.location.href = 'admin.html';
         });
       } else {
-        Swal.fire('Error', 'Incorrect email or password', 'error');
+        Swal.fire('Error', 'Email ya password galat hai', 'error');
       }
     }
   });
