@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign In with Roll Number & Admin Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+  padding: 30px;
+  position: relative;
+  min-height: 100vh;
+  color: #444;
+}
+
+.form-box, .search-box {
+  background: #ffffffdd;
+  max-width: 400px;
+  margin: 40px auto 20px auto;
+  padding: 25px 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  transition: box-shadow 0.3s ease;
+}
+
+.form-box:hover, .search-box:hover {
+  box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+}
+
+h2, h3 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+}
+
+input {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 14px 16px;
+  border: 1.8px solid #d1d8e0;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #34495e;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+input::placeholder {
+  color: #aab2bd;
+  font-style: italic;
+}
+
+input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 8px rgba(52,152,219,0.4);
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(52, 152, 219, 0.5);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+  background: #2980b9;
+  box-shadow: 0 8px 18px rgba(41, 128, 185, 0.7);
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 25px 30px;
+  max-width: 400px;
+  margin: 30px auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  border: 2px solid #3498db;
+  color: #2c3e50;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 15px;
+  color: #2980b9;
+}
+
+.card p {
+  font-size: 1rem;
+  margin: 8px 0;
+  color: #34495e;
+}
+
+.search-box h3 {
+  font-weight: 700;
+  color: #34495e;
+}
+
+#adminBtn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  padding: 10px 18px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(39, 174, 96, 0.6);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  z-index: 1000;
+}
+
+#adminBtn:hover {
+  background: #1e8449;
+  box-shadow: 0 8px 20px rgba(30, 132, 73, 0.8);
+}
+
+  </style>
+</head>
+<body>
+
+<button id="adminBtn">Admin</button>
+
+<div class="form-box">
+  <h2>Sign In</h2>
+  <input type="text" id="fname" placeholder="First Name" />
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
+  <input type="text" id="fathername" placeholder="Father Name" />
+  <input type="text" id="adress" placeholder="Address" />
+  <input type="text" id="phoneNumber" placeholder="Phone Number" />
+  <button id="submit">Submit</button>
+</div>
+
+<div class="search-box">
+  <h3>🔎 Search by Roll Number</h3>
+  <input type="text" id="searchRoll" placeholder="Enter a Roll Number" />
+  <button id="searchBtn">Search</button>
+</div>
+
+<div id="userCard"></div>
+
+<script type="module">
+  import { supabase } from "./supabaseConfig.js";
+
+  // Form inputs
+  const fname = document.getElementById("fname");
+  const email = document.getElementById("email");
+  const password = document.getElementById("password");
+  const fathername = document.getElementById("fathername");
+  const adress = document.getElementById("adress");
+  const phoneNumber = document.getElementById("phoneNumber");
+  const btn = document.getElementById("submit");
+  const card = document.getElementById("userCard");
+
+  // Search inputs
+  const searchInput = document.getElementById("searchRoll");
+  const searchBtn = document.getElementById("searchBtn");
+
+  // Admin button
+  const adminBtn = document.getElementById('adminBtn');
+
+  // Submit sign in form
+  btn.addEventListener("click", async () => {
+    const nameVal = fname.value.trim();
+    const emailVal = email.value.trim();
+    const passVal = password.value.trim();
+    const fatherVal = fathername.value.trim();
+    const addressVal = adress.value.trim();
+    const phoneVal = phoneNumber.value.trim();
+
+    if (!nameVal || !emailVal || !passVal || !fatherVal || !addressVal || !phoneVal) {
+      Swal.fire("Error", "Please fill all fields", "error");
+      return;
+    }
+
+    // Check if email exists
+    const { data: exists } = await supabase
+      .from("details")
+      .select("*")
+      .eq("email", emailVal);
+
+    if (exists.length > 0) {
+      Swal.fire("Error", "Email already exists", "error");
+      return;
+    }
+
+    // Generate 6-digit roll number
+    const rollNumber = Math.floor(100000 + Math.random() * 900000);
+
+    // Insert into supabase
+    const { error } = await supabase
+      .from("details")
+      .insert([{
+        first_name: nameVal,
+        email: emailVal,
+        password: passVal,
+        rollnumber: rollNumber,
+        fathername: fatherVal,
+        adress: addressVal,
+        phoneNumber: phoneVal
+      }]);
+
+    if (!error) {
+      Swal.fire("Saved!", "User added successfully.", "success");
+
+      showCard({
+        first_name: nameVal,
+        email: emailVal,
+        rollnumber: rollNumber,
+        fathername: fatherVal,
+        adress: addressVal,
+        phoneNumber: phoneVal
+      });
+
+      // Clear form
+      fname.value = "";
+      email.value = "";
+      password.value = "";
+      fathername.value = "";
+      adress.value = "";
+      phoneNumber.value = "";
+    } else {
+      Swal.fire("Error", "Failed to save user data", "error");
+    }
+  });
+
+  // Search roll number
+  searchBtn.addEventListener("click", async () => {
+    const roll = searchInput.value.trim();
+
+    if (!roll) {
+      Swal.fire("Error", "Please enter a roll number", "error");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("details")
+      .select("*")
+      .eq("rollnumber", roll);
+
+    if (data && data.length > 0) {
+      showCard(data[0]);
+    } else {
+      card.innerHTML = `
+        <div class="card">
+          <h3>❌ Roll Number Not Found</h3>
+          <p>No student exists with Roll # <strong>${roll}</strong></p>
+        </div>
+      `;
+    }
+
+    searchInput.value = "";
+  });
+
+  // Show user card function
+  function showCard(user) {
+    card.innerHTML = `
+      <div class="card">
+        <h3>👤 ${user.first_name}</h3>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Roll Number:</strong> ${user.rollnumber}</p>
+        <p><strong>Father Name:</strong> ${user.fathername}</p>
+        <p><strong>Address:</strong> ${user.adress}</p>
+        <p><strong>Phone:</strong> ${user.phoneNumber}</p>
+      </div>
+    `;
+  }
+
+  // Admin button click & login popup
+  adminBtn.addEventListener('click', async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Admin Login',
+      html:
+        `<input type="email" id="swalEmail" class="swal2-input" placeholder="Email">` +
+        `<input type="password" id="swalPass" class="swal2-input" placeholder="Password">`,
+      focusConfirm: false,
+      preConfirm: () => {
+        const email = Swal.getPopup().querySelector('#swalEmail').value;
+        const pass = Swal.getPopup().querySelector('#swalPass').value;
+        if (!email || !pass) {
+          Swal.showValidationMessage(`Please enter email and password`);
+          return;
+        }
+        return { email, pass };
+      }
+    });
+
+    if (formValues) {
+      const { email, pass } = formValues;
+      if (email === 'rehman@gmail.com' && pass === 'rehmanbhai12') {
+        Swal.fire('Welcome Admin!', '', 'success').then(() => {
+          window.location.href = 'admin.html';  // Redirect to admin page
+        });
+      } else {
+        Swal.fire('Error', 'Incorrect email or password', 'error');
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
